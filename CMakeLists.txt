@@ -36,8 +36,8 @@ add_executable(
   user.h                user.cpp
   usermanager.h         usermanager.cpp
   relationalbroker.h    relationalbroker.cpp
-  msgbroker.h           msgbroker.cpp
   filetools.h           filetools.cpp
+  filelock.h            filelock.cpp
 )
 
 target_compile_features(ChatWorld_Server PRIVATE cxx_std_20)

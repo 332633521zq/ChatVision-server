@@ -14,12 +14,26 @@ class UserManager : public Singleton<UserManager>
 public:
     ~UserManager();
     std::string GetUuidByUid(unsigned int uid);
+    unsigned int GetUidByUuid(std::string uuid);
     void AddToConnectsList(unsigned int uid, std::string uuid);
 
-    void AddFollowRelation(unsigned int uid, unsigned int follower_id);
-    void DeleteFollowRelation(unsigned int uid, unsigned int follower_id);
+    void AddFollowRelation(unsigned int& follower_id, unsigned int& followee_id);
+    void DeleteFollowRelation(unsigned int& follower_id, unsigned int& followee_id);
+    void AddToBlacklist(unsigned int& uid, unsigned int& blocked_id);
+    void RemoveFromBlacklist(unsigned int& uid, unsigned int& blocked_id);
 
-    nlohmann::json GainUserInformation(unsigned int uid);
+    nlohmann::json GetUserInformation(unsigned int uid);
+    nlohmann::json GetFollowingUsersInfo(unsigned int uid);
+    nlohmann::json GetFollowerUsersInfo(unsigned int uid);
+    nlohmann::json GetBlackListUsersInfo(unsigned int uid);
+    void ClearUuid(std::string uuid);
+    void DisconnectUser(std::string uuid);
+    void ConnectUser(unsigned int uid, std::string uuid);
+    std::string LastOfflineTime(unsigned int uid);
+    std::vector<unsigned int> FindChattedUsers(const unsigned int& uid);
+    void FirstChat(const unsigned int& uid, const unsigned int& object_id);
+    bool IsChatPermitted(const unsigned int& uid, const unsigned int& object_id);
+    void AnswerFirstChat(const unsigned int& uid, const unsigned int& object_id);
 
 private:
     UserManager();

@@ -13,6 +13,51 @@ RelationalBroker::RelationalBroker()
     m_connection = std::move(conn);
 }
 
+void RelationalBroker::InsertIntoOnlineState(int user_num)
+{
+    unsigned int start_uid = 20000000;
+    std::string command;
+    for (int i = 0; i < user_num; i++) {
+        command = "INSERT INTO OnlineState "
+                  "(UserID, IsOnline, LastOffline)VALUES("
+                  + std::to_string(start_uid + i) + ", false, '1900-01-01 00:00:00');";
+        Query(command);
+    }
+}
+
+void RelationalBroker::CreateUserTable(unsigned int uid)
+{
+    Query("CREATE TABLE " + std::to_string(uid)
+          + "_Following ("
+            "UserID INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,"
+            "BuildTime DATETIME);");
+    Query("CREATE TABLE " + std::to_string(uid)
+          + "_Followers ("
+            "UserID INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,"
+            "BuildTime DATETIME);");
+    Query("CREATE TABLE " + std::to_string(uid)
+          + "_Blacklist ("
+            "UserID INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,"
+            "BuildTime DATETIME);");
+    Query("CREATE TABLE " + std::to_string(uid)
+          + "_Interact ("
+            "UserID INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,"
+            "BuildTime DATETIME);");
+    Query("CREATE TABLE " + std::to_string(uid)
+          + "_Chatted ("
+            "UserID INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,"
+            "Relation INT UNSIGNED,"
+            "IsContinue BOOL);");
+}
+
+void RelationalBroker::CreateUsersTable(unsigned int user_num)
+{
+    unsigned int start_uid = 20000000;
+    for (int i = 0; i < user_num; i++) {
+        CreateUserTable(start_uid + i);
+    }
+}
+
 void RelationalBroker::InitDataBase()
 {
     RelationalBroker();
@@ -31,29 +76,41 @@ void RelationalBroker::InitDataBase()
         Query("INSERT INTO Users "
               "(UserID, U_Nickname, U_Avater, U_Gender, U_Area, U_Signature)VALUES"
               "(20000000, '85', 'path', '女', '重庆', '罪恶没有假期，正义便无暇休憩'),"
-              " (20000001, '坐看云起时', 'path', '女', '重庆', '以雷霆击碎黑暗'),  "
-              "(20000002, 'hahaha', 'path', '女', '重庆', '我叫hahaha');");
+              "(20000001, '坐看云起时', 'path', '女', '重庆', '以雷霆击碎黑暗'),  "
+              "(20000002, '盎司及', 'path', '男', '河北', '盎司及多家凯撒'),  "
+              "(20000003, 'hahaha', 'path', '女', '重庆', '我叫hahaha'),"
+              "(20000004, 'User4', 'path', '男', '北京', '热爱生活，热爱编程'),"
+              "(20000005, 'User5', 'path', '女', '上海', '追逐梦想，永不止步'),"
+              "(20000006, 'User6', 'path', '男', '广州', '技术改变世界'),"
+              "(20000007, 'User7', 'path', '女', '深圳', '代码如诗，逻辑如画'),"
+              "(20000008, 'User8', 'path', '男', '杭州', '探索未知，勇往直前'),"
+              "(20000009, 'User9', 'path', '女', '成都', '热爱美食，热爱生活'),"
+              "(20000010, 'User10', 'path', '男', '武汉', '坚持不懈，终会成功'),"
+              "(20000011, 'User11', 'path', '女', '西安', '历史与现代的交融'),"
+              "(20000012, 'User12', 'path', '男', '南京', '六朝古都，文化底蕴'),"
+              "(20000013, 'User13', 'path', '女', '苏州', '园林之城，人间天堂'),"
+              "(20000014, 'User14', 'path', '男', '天津', '海河之滨，魅力之城'),"
+              "(20000015, 'User15', 'path', '女', '重庆', '山城重庆，火锅之都'),"
+              "(20000016, 'User16', 'path', '男', '长沙', '岳麓山下，橘子洲头'),"
+              "(20000017, 'User17', 'path', '女', '郑州', '中原大地，文化之源'),"
+              "(20000018, 'User18', 'path', '男', '青岛', '海滨之城，啤酒之都'),"
+              "(20000019, 'User19', 'path', '女', '大连', '浪漫之都，时尚之城')"
+              ";");
 
-        Query("CREATE TABLE 20000000_Following ("
+        Query("CREATE TABLE OnlineState ("
               "UserID INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,"
-              "BuildTime DATETIME);");
-        Query("CREATE TABLE 20000000_Followers ("
-              "UserID INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,"
-              "BuildTime DATETIME);");
+              "IsOnline bool,"
+              "LastOffline DATETIME);");
 
-        Query("CREATE TABLE 20000001_Following ("
-              "UserID INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,"
-              "BuildTime DATETIME);");
-        Query("CREATE TABLE 20000001_Followers ("
-              "UserID INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,"
-              "BuildTime DATETIME);");
+        InsertIntoOnlineState(20);
+        // Query("INSERT INTO OnlineState "
+        //       "(UserID, IsOnline, LastOffline)VALUES"
+        //       "(20000000, false, '1900-01-01 00:00:00'),"
+        //       "(20000001, false, '1900-01-01 00:00:00'),"
+        //       "(20000002, false, '1900-01-01 00:00:00'),"
+        //       "(20000003, false, '1900-01-01 00:00:00');");
 
-        Query("CREATE TABLE 20000002_Following ("
-              "UserID INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,"
-              "BuildTime DATETIME);");
-        Query("CREATE TABLE 20000002_Followers ("
-              "UserID INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,"
-              "BuildTime DATETIME);");
+        CreateUsersTable(20);
 
     } catch (mysqlpp::Exception e) {
         std::cout << e.what();
@@ -62,7 +119,7 @@ void RelationalBroker::InitDataBase()
 
 mysqlpp::StoreQueryResult RelationalBroker::Query(std::string command)
 {
-    std::cerr << "正在查询数据库的信息 " << std::endl;
+    // std::cerr << "正在查询数据库的信息 " << std::endl;
     mysqlpp::StoreQueryResult res;
     try {
         mysqlpp::Query query = m_connection->query();
@@ -74,7 +131,7 @@ mysqlpp::StoreQueryResult RelationalBroker::Query(std::string command)
     //显示数据
     mysqlpp::StoreQueryResult::const_iterator it; // 迭代器
     size_t numFields = res.num_fields();
-    std::cerr << "成功查询数据库的信息！" << std::endl;
+    // std::cerr << "成功查询数据库的信息！" << std::endl;
     for (it = res.begin(); it != res.end(); ++it) {
         for (size_t j = 0; j < numFields; ++j) {
             mysqlpp::Row row = *it;

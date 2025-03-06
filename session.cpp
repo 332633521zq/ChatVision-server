@@ -2,6 +2,7 @@
 #include "logicnode.h"
 #include "logicsystem.h"
 #include "server.h"
+#include "usermanager.h"
 // #include <iomanip>
 #include <iostream>
 
@@ -16,6 +17,9 @@ Session::Session(boost::asio::io_context& io_context, Server* server)
 
 Session::~Session()
 {
+    // Close();
+    // _server->ClearSession(_uuid);
+    UserManager::GetInstance()->DisconnectUser(_uuid);
     std::cout << "~Session " << _uuid << " destruct\n\n" << std::endl;
 }
 
@@ -42,6 +46,8 @@ void Session::Start()
 
 void Session::Close()
 {
+    // boost::system::error_code ec;
+    // _socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
     _socket.close();
     _b_close = true;
 }
@@ -94,6 +100,7 @@ void Session::HandleRead(const boost::system::error_code& error,
         // std::chrono::milliseconds dura(2000);
         // std::this_thread::sleep_for(dura);
 
+        std::cout << "\n\n\n\n";
         int copy_len = 0; //已经移动的字符数
         while (bytes_transfered > 0) {
             if (!_b_head_parse) {
@@ -170,6 +177,7 @@ void Session::HandleRead(const boost::system::error_code& error,
                 bytes_transfered -= msg_len;
                 _recv_msg_node->_data[_recv_msg_node->_total_len] = '\0';
 
+                std::cout << "_recv_msg_node->_data:" << _recv_msg_node->_data << std::endl;
                 LogicSystem::GetInstance()->PostMsgToQue(
                     std::make_shared<LogicNode>(shared_from_this(), _recv_msg_node));
                 std::cout << "LogicSystem finished" << std::endl;
