@@ -170,15 +170,15 @@ void LogicSystem::LoginCallBack(std::shared_ptr<Session> session,
 
     // 推送用户的粉丝列表，关注列表，黑名单
     nlohmann::json following_list = UserManager::GetInstance()->GetFollowingUsersInfo(uid);
-    msg["data"] = following_list.dump();
+    msg["data"] = following_list;
     session->Send(msg.dump(), MSG_GET_FOLLOWINGS);
 
     nlohmann::json follower_list = UserManager::GetInstance()->GetFollowerUsersInfo(uid);
-    msg["data"] = follower_list.dump();
+    msg["data"] = follower_list;
     session->Send(msg.dump(), MSG_GET_FOLLOWERS);
 
     nlohmann::json black_list = UserManager::GetInstance()->GetBlackListUsersInfo(uid);
-    msg["data"] = black_list.dump();
+    msg["data"] = black_list;
     session->Send(msg.dump(), MSG_GET_BLACKLIST);
 
     // 推送离线消息
@@ -195,7 +195,7 @@ void LogicSystem::LoginCallBack(std::shared_ptr<Session> session,
 
                 for (auto i : msgs) {
                     std::cout << "chat msg i:" << i << std::endl;
-                    session->Send(i, msg_id);
+                    session->Send(i, MSG_TEXT_CHAT);
                 }
             } else {
                 std::cout << "vector msg is empty" << std::endl;

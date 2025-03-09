@@ -207,10 +207,6 @@ std::vector<std::string> FileTools::GetOfflineTextMsg(unsigned int conn_uid, uns
     // std::string filename = lastoffline.substr(0, 10) + ".txt";
     if (strcmp(lastoffline.substr(0, 10).c_str(), "1900-01-01") == 0)
         return std::vector<std::string>();
-    // std::filesystem::path latest_file = file_dir / filename;
-    // auto latest_time = std::format("{:%Y-%m-%d %H:%M:%S}",
-    //                                std::chrono::system_clock::from_time_t(
-    //                                    GetFileLatestModifyTime(latest_file)));
 
     std::string prefix_forwarded = "**Forwarded**";
     std::string prefix_unforward = "**Unforward**";

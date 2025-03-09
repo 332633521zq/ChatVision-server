@@ -87,7 +87,7 @@ nlohmann::json UserManager::GetFollowingUsersInfo(unsigned int uid)
     nlohmann::json users_info;
     for (auto uid : user_ids) {
         std::cout << "following user id:" << uid << std::endl;
-        users_info[std::to_string(uid)] = _user_broker->FindUser(uid);
+        users_info.push_back(_user_broker->FindUser(uid));
     }
 
     return users_info;
@@ -101,7 +101,7 @@ nlohmann::json UserManager::GetFollowerUsersInfo(unsigned int uid)
     // 根据 UserID 列表获取用户信息
     nlohmann::json users_info;
     for (auto i : user_ids) {
-        users_info[std::to_string(i)] = _user_broker->FindUser(i);
+        users_info.push_back(_user_broker->FindUser(i));
     }
 
     return users_info;
@@ -115,7 +115,7 @@ nlohmann::json UserManager::GetBlackListUsersInfo(unsigned int uid)
     // 根据 UserID 列表获取用户信息
     nlohmann::json users_info;
     for (auto i : user_ids) {
-        users_info[std::to_string(i)] = _user_broker->FindUser(i);
+        users_info.push_back(_user_broker->FindUser(i));
     }
 
     return users_info;

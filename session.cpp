@@ -250,7 +250,6 @@ void Session::HandleRead(const boost::system::error_code& error,
 
 void Session::Send(char* msg, int max_length, short msgid)
 {
-    // std::cout << "Session::Send(char* msg, int max_length, short msgid)" << std::endl;
     std::lock_guard<std::mutex> lock(_send_lock);
 
     int send_que_size = _send_que.size();
