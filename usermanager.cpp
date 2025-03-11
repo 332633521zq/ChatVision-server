@@ -121,6 +121,17 @@ nlohmann::json UserManager::GetBlackListUsersInfo(unsigned int uid)
     return users_info;
 }
 
+json UserManager::GetChattedUsersInfo(unsigned int uid)
+{
+    json chatted_users;
+    auto chatted_uid = FindChattedUsers(uid);
+    for (auto i : chatted_uid) {
+        chatted_users.push_back(_user_broker->FindUser(i));
+    }
+    std::cout << "chatted users:" << chatted_users << std::endl;
+    return chatted_users;
+}
+
 std::vector<unsigned int> UserManager::FindChattedUsers(const unsigned int& uid)
 {
     return _user_broker->FindChattedUsers(uid);
