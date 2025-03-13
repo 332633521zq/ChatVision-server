@@ -1,6 +1,6 @@
 #pragma once
 
-constexpr int MAX_LENGTH = 1024 * 20;
+constexpr int MAX_LENGTH = 1024 * 2;
 
 #define HEAD_ID_LENGTH 2
 #define HEAD_DATA_LENGTH 2

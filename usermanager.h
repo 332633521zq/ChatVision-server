@@ -26,6 +26,8 @@ public:
     nlohmann::json GetFollowingUsersInfo(unsigned int uid);
     nlohmann::json GetFollowerUsersInfo(unsigned int uid);
     nlohmann::json GetBlackListUsersInfo(unsigned int uid);
+    nlohmann::json GetChattedUsersInfo(unsigned int uid);
+
     void ClearUuid(std::string uuid);
     void DisconnectUser(std::string uuid);
     void ConnectUser(unsigned int uid, std::string uuid);
