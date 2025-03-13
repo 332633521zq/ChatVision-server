@@ -28,6 +28,7 @@ public:
     std::unordered_set<unsigned int> GenerateRandomNumbers(unsigned int min,
                                                            unsigned int max,
                                                            int count);
+    void TransmitMsg(std::shared_ptr<Session>, const short& msg_id, const std::string& msg_data);
 
     void HelloWorldCallBack(std::shared_ptr<Session>,
                             const short& msg_id,
@@ -50,12 +51,9 @@ public:
     void CancelBlockCallBack(std::shared_ptr<Session> session,
                              const short& msg_id,
                              const std::string& msg_data);
-    void VideoChatCallBack(std::shared_ptr<Session> session,
-                           const short& msg_id,
-                           const std::string& msg_data);
-    void RefuseVideoChatCallBack(std::shared_ptr<Session> session,
-                                 const short& msg_id,
-                                 const std::string& msg_data);
+    void AVChatCallBack(std::shared_ptr<Session> session,
+                        const short& msg_id,
+                        const std::string& msg_data);
     void RandomPushChatCallBack(std::shared_ptr<Session> session,
                                 const short& msg_id,
                                 const std::string& msg_data);

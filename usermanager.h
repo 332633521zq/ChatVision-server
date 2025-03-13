@@ -34,6 +34,7 @@ public:
     void FirstChat(const unsigned int& uid, const unsigned int& object_id);
     bool IsChatPermitted(const unsigned int& uid, const unsigned int& object_id);
     void AnswerFirstChat(const unsigned int& uid, const unsigned int& object_id);
+    nlohmann::json GetChattedUsersInfo(unsigned int uid);
 
 private:
     UserManager();

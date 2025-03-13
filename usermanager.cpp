@@ -87,6 +87,8 @@ nlohmann::json UserManager::GetFollowingUsersInfo(unsigned int uid)
     nlohmann::json users_info;
     for (auto uid : user_ids) {
         std::cout << "following user id:" << uid << std::endl;
+        if (_user_broker->FindUser(uid) == NULL)
+            continue;
         users_info.push_back(_user_broker->FindUser(uid));
     }
 
@@ -101,6 +103,8 @@ nlohmann::json UserManager::GetFollowerUsersInfo(unsigned int uid)
     // 根据 UserID 列表获取用户信息
     nlohmann::json users_info;
     for (auto i : user_ids) {
+        if (_user_broker->FindUser(i) == NULL)
+            continue;
         users_info.push_back(_user_broker->FindUser(i));
     }
 
@@ -115,6 +119,8 @@ nlohmann::json UserManager::GetBlackListUsersInfo(unsigned int uid)
     // 根据 UserID 列表获取用户信息
     nlohmann::json users_info;
     for (auto i : user_ids) {
+        if (_user_broker->FindUser(i) == NULL)
+            continue;
         users_info.push_back(_user_broker->FindUser(i));
     }
 
@@ -188,4 +194,15 @@ void UserManager::AnswerFirstChat(const unsigned int& uid, const unsigned int& o
         std::cout << "AnswerFirstChat:" << std::endl;
         _user_broker->UpdateChatPermission(uid, object_id, true);
     }
+}
+
+json UserManager::GetChattedUsersInfo(unsigned int uid)
+{
+    json chatted_users;
+    auto chatted_uid = FindChattedUsers(uid);
+    for (auto i : chatted_uid) {
+        chatted_users.push_back(_user_broker->FindUser(i));
+    }
+    std::cout << "chatted users:" << chatted_users << std::endl;
+    return chatted_users;
 }

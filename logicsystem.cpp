@@ -117,13 +117,37 @@ void LogicSystem::RegisterCallBacks()
                                                 std::placeholders::_2,
                                                 std::placeholders::_3);
 
-    _fun_callback[MSG_VIDEO_CHAT] = std::bind(&LogicSystem::VideoChatCallBack,
+    _fun_callback[MSG_VIDEO_CHAT] = std::bind(&LogicSystem::AVChatCallBack,
                                               this,
                                               std::placeholders::_1,
                                               std::placeholders::_2,
                                               std::placeholders::_3);
 
-    _fun_callback[MSG_VIDEO_CHAT_REFUSED] = std::bind(&LogicSystem::RefuseVideoChatCallBack,
+    _fun_callback[MSG_AGREE_VIDEO] = std::bind(&LogicSystem::TransmitMsg,
+                                               this,
+                                               std::placeholders::_1,
+                                               std::placeholders::_2,
+                                               std::placeholders::_3);
+
+    _fun_callback[MSG_VIDEO_CHAT_REFUSED] = std::bind(&LogicSystem::TransmitMsg,
+                                                      this,
+                                                      std::placeholders::_1,
+                                                      std::placeholders::_2,
+                                                      std::placeholders::_3);
+
+    _fun_callback[MSG_AUDIO_CHAT] = std::bind(&LogicSystem::AVChatCallBack,
+                                              this,
+                                              std::placeholders::_1,
+                                              std::placeholders::_2,
+                                              std::placeholders::_3);
+
+    _fun_callback[MSG_AGREE_AUDIO] = std::bind(&LogicSystem::TransmitMsg,
+                                               this,
+                                               std::placeholders::_1,
+                                               std::placeholders::_2,
+                                               std::placeholders::_3);
+
+    _fun_callback[MSG_AUDIO_CHAT_REFUSED] = std::bind(&LogicSystem::TransmitMsg,
                                                       this,
                                                       std::placeholders::_1,
                                                       std::placeholders::_2,
@@ -181,6 +205,10 @@ void LogicSystem::LoginCallBack(std::shared_ptr<Session> session,
     msg["data"] = black_list;
     session->Send(msg.dump(), MSG_GET_BLACKLIST);
 
+    nlohmann::json chatted_userinfo = UserManager::GetInstance()->GetChattedUsersInfo(uid);
+    msg["data"] = chatted_userinfo;
+    session->Send(msg.dump(), MSG_CHATTED_USER);
+
     // 推送离线消息
     std::vector<unsigned int> chatted_users = UserManager::GetInstance()->FindChattedUsers(uid);
 
@@ -232,9 +260,6 @@ void LogicSystem::TextChatCallBack(std::shared_ptr<Session> session,
     bool is_permitted = UserManager::GetInstance()->IsChatPermitted(uid, obj_id);
 
     if (is_permitted) {
-        msg["uid"] = obj_id;
-        msg["object_id"] = uid;
-
         std::string obj_uuid = UserManager::GetInstance()->GetUuidByUid(obj_id);
         bool forward_state = obj_uuid == "" ? false : true;
         std::cout << "forward_state:" << forward_state << std::endl;
@@ -260,6 +285,36 @@ void LogicSystem::TextChatCallBack(std::shared_ptr<Session> session,
     }
 }
 
+void LogicSystem::TransmitMsg(std::shared_ptr<Session> session,
+                              const short &msg_id,
+                              const std::string &msg_data)
+{
+    std::cout << "TransmitMsg---" << std::endl;
+
+    nlohmann::json msg;
+    if (msg_data.size() >= 4) {
+        std::cout << "msg_data: " << msg_data << std::endl;
+        msg = nlohmann::json::parse(msg_data);
+    } else {
+        std::cout << "msg size is 0" << std::endl;
+        return;
+    }
+
+    unsigned int uid = msg.at("uid");
+    unsigned int obj_id = msg.at("object_id");
+
+    std::string obj_uuid = UserManager::GetInstance()->GetUuidByUid(obj_id);
+    if (obj_uuid != "") {
+        // 目标对象视角的uid和object_id
+
+        auto obj_session = session->_server->FindSessionByUuid(obj_uuid);
+        std::cout << "obj_id:" << obj_id << "\tobj_uuid:" << obj_uuid << std::endl;
+        if (obj_session != nullptr) {
+            obj_session->Send(msg.dump(), msg_id);
+        }
+    }
+}
+
 void LogicSystem::FollowCallBack(std::shared_ptr<Session> session,
                                  const short &msg_id,
                                  const std::string &msg_data)
@@ -278,18 +333,7 @@ void LogicSystem::FollowCallBack(std::shared_ptr<Session> session,
     unsigned int uid = msg.at("uid");
     unsigned int obj_id = msg.at("object_id");
 
-    std::string obj_uuid = UserManager::GetInstance()->GetUuidByUid(obj_id);
-    if (obj_uuid != "") {
-        // 目标对象视角的uid和object_id
-        msg["uid"] = obj_id;
-        msg["object_id"] = uid;
-        auto obj_session = session->_server->FindSessionByUuid(obj_uuid);
-        std::cout << "obj_id:" << obj_id << "\tobj_uuid:" << obj_uuid << std::endl;
-        if (obj_session != nullptr) {
-            obj_session->Send(msg.dump(), MSG_FOLLOWING);
-        }
-    }
-
+    TransmitMsg(session, msg_id, msg_data);
     UserManager::GetInstance()->AddFollowRelation(uid, obj_id);
 }
 
@@ -311,18 +355,7 @@ void LogicSystem::CancelFollowCallBack(std::shared_ptr<Session> session,
     unsigned int uid = msg.at("uid");
     unsigned int obj_id = msg.at("object_id");
 
-    std::string obj_uuid = UserManager::GetInstance()->GetUuidByUid(obj_id);
-    if (obj_uuid != "") {
-        // 目标对象视角的uid和object_id
-        msg["uid"] = obj_id;
-        msg["object_id"] = uid;
-        auto obj_session = session->_server->FindSessionByUuid(obj_uuid);
-        std::cout << "obj_id:" << obj_id << "\tobj_uuid:" << obj_uuid << std::endl;
-        if (obj_session != nullptr) {
-            obj_session->Send(msg.dump(), MSG_CANCEL_FOLLOW);
-        }
-    }
-
+    TransmitMsg(session, msg_id, msg_data);
     UserManager::GetInstance()->DeleteFollowRelation(uid, obj_id);
 }
 
@@ -344,17 +377,17 @@ void LogicSystem::BlockCallBack(std::shared_ptr<Session> session,
     unsigned int uid = msg.at("uid");
     unsigned int obj_id = msg.at("object_id");
 
-    std::string obj_uuid = UserManager::GetInstance()->GetUuidByUid(obj_id);
-    if (obj_uuid != "") {
-        // 目标对象视角的uid和object_id
-        msg["uid"] = obj_id;
-        msg["object_id"] = uid;
-        auto obj_session = session->_server->FindSessionByUuid(obj_uuid);
-        std::cout << "obj_id:" << obj_id << "\tobj_uuid:" << obj_uuid << std::endl;
-        if (obj_session != nullptr) {
-            obj_session->Send(msg.dump(), MSG_BLOCK);
-        }
-    }
+    // std::string obj_uuid = UserManager::GetInstance()->GetUuidByUid(obj_id);
+    // if (obj_uuid != "") {
+    //     // 目标对象视角的uid和object_id
+    //
+    //
+    //     auto obj_session = session->_server->FindSessionByUuid(obj_uuid);
+    //     std::cout << "obj_id:" << obj_id << "\tobj_uuid:" << obj_uuid << std::endl;
+    //     if (obj_session != nullptr) {
+    //         obj_session->Send(msg.dump(), MSG_BLOCK);
+    //     }
+    // }
 
     UserManager::GetInstance()->AddToBlacklist(uid, obj_id);
 }
@@ -377,30 +410,30 @@ void LogicSystem::CancelBlockCallBack(std::shared_ptr<Session> session,
     unsigned int uid = msg.at("uid");
     unsigned int obj_id = msg.at("object_id");
 
-    std::string obj_uuid = UserManager::GetInstance()->GetUuidByUid(obj_id);
-    if (obj_uuid != "") {
-        // 目标对象视角的uid和object_id
-        msg["uid"] = obj_id;
-        msg["object_id"] = uid;
-        auto obj_session = session->_server->FindSessionByUuid(obj_uuid);
-        std::cout << "obj_id:" << obj_id << "\tobj_uuid:" << obj_uuid << std::endl;
-        if (obj_session != nullptr) {
-            obj_session->Send(msg.dump(), MSG_CANCEL_BLOCK);
-        }
-    }
+    // std::string obj_uuid = UserManager::GetInstance()->GetUuidByUid(obj_id);
+    // if (obj_uuid != "") {
+    //     // 目标对象视角的uid和object_id
+    //
+    //
+    //     auto obj_session = session->_server->FindSessionByUuid(obj_uuid);
+    //     std::cout << "obj_id:" << obj_id << "\tobj_uuid:" << obj_uuid << std::endl;
+    //     if (obj_session != nullptr) {
+    //         obj_session->Send(msg.dump(), MSG_CANCEL_BLOCK);
+    //     }
+    // }
 
     UserManager::GetInstance()->RemoveFromBlacklist(uid, obj_id);
 }
 
-void LogicSystem::VideoChatCallBack(std::shared_ptr<Session> session,
-                                    const short &msg_id,
-                                    const std::string &msg_data)
+void LogicSystem::AVChatCallBack(std::shared_ptr<Session> session,
+                                 const short &msg_id,
+                                 const std::string &msg_data)
 {
     std::cout << "VideoChatCallBack---" << std::endl;
 
     nlohmann::json msg;
     if (msg_data.size() >= 4) {
-        std::cout << "msg_data: " << msg_data << std::endl;
+        std::cout << "msg_data: " << msg_data << ";;;msg m" << msg_data.size() << std::endl;
         msg = nlohmann::json::parse(msg_data);
     } else {
         std::cout << "msg size is 0" << std::endl;
@@ -413,46 +446,14 @@ void LogicSystem::VideoChatCallBack(std::shared_ptr<Session> session,
     std::string obj_uuid = UserManager::GetInstance()->GetUuidByUid(obj_id);
     if (obj_uuid != "") {
         // 目标对象视角的uid和object_id
-        msg["uid"] = obj_id;
-        msg["object_id"] = uid;
+
         auto obj_session = session->_server->FindSessionByUuid(obj_uuid);
         std::cout << "obj_id:" << obj_id << "\tobj_uuid:" << obj_uuid << std::endl;
         if (obj_session != nullptr) {
-            obj_session->Send(msg.dump(), MSG_VIDEO_CHAT);
+            obj_session->Send(msg.dump(), msg_id);
         }
     } else {
         session->Send(msg.dump(), MSG_NOT_ONLINE);
-    }
-}
-
-void LogicSystem::RefuseVideoChatCallBack(std::shared_ptr<Session> session,
-                                          const short &msg_id,
-                                          const std::string &msg_data)
-{
-    std::cout << "RefuseVideoChatCallBack---" << std::endl;
-
-    nlohmann::json msg;
-    if (msg_data.size() >= 4) {
-        std::cout << "msg_data: " << msg_data << std::endl;
-        msg = nlohmann::json::parse(msg_data);
-    } else {
-        std::cout << "msg size is 0" << std::endl;
-        return;
-    }
-
-    unsigned int uid = msg.at("uid");
-    unsigned int obj_id = msg.at("object_id");
-
-    std::string obj_uuid = UserManager::GetInstance()->GetUuidByUid(obj_id);
-    if (obj_uuid != "") {
-        // 目标对象视角的uid和object_id
-        msg["uid"] = obj_id;
-        msg["object_id"] = uid;
-        auto obj_session = session->_server->FindSessionByUuid(obj_uuid);
-        std::cout << "obj_id:" << obj_id << "\tobj_uuid:" << obj_uuid << std::endl;
-        if (obj_session != nullptr) {
-            obj_session->Send(msg.dump(), MSG_VIDEO_CHAT_REFUSED);
-        }
     }
 }
 
