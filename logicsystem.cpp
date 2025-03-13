@@ -246,7 +246,7 @@ void LogicSystem::TextChatCallBack(std::shared_ptr<Session> session,
     nlohmann::json msg;
     if (msg_data.size() >= 4) {
         std::cout << "msg_data: " << msg_data << std::endl;
-        msg = nlohmann::json::parse(msg_data);
+        // msg = nlohmann::json::parse(msg_data);
     } else {
         std::cout << "msg size is 0" << std::endl;
         return;
@@ -373,18 +373,6 @@ void LogicSystem::BlockCallBack(std::shared_ptr<Session> session,
     unsigned int uid = msg.at("uid");
     unsigned int obj_id = msg.at("object_id");
 
-    // std::string obj_uuid = UserManager::GetInstance()->GetUuidByUid(obj_id);
-    // if (obj_uuid != "") {
-    //
-    //
-    //
-    //     auto obj_session = session->_server->FindSessionByUuid(obj_uuid);
-    //     std::cout << "obj_id:" << obj_id << "\tobj_uuid:" << obj_uuid << std::endl;
-    //     if (obj_session != nullptr) {
-    //         obj_session->Send(msg.dump(), MSG_BLOCK);
-    //     }
-    // }
-
     UserManager::GetInstance()->AddToBlacklist(uid, obj_id);
 }
 
@@ -405,18 +393,6 @@ void LogicSystem::CancelBlockCallBack(std::shared_ptr<Session> session,
 
     unsigned int uid = msg.at("uid");
     unsigned int obj_id = msg.at("object_id");
-
-    // std::string obj_uuid = UserManager::GetInstance()->GetUuidByUid(obj_id);
-    // if (obj_uuid != "") {
-    //
-    //
-    //
-    //     auto obj_session = session->_server->FindSessionByUuid(obj_uuid);
-    //     std::cout << "obj_id:" << obj_id << "\tobj_uuid:" << obj_uuid << std::endl;
-    //     if (obj_session != nullptr) {
-    //         obj_session->Send(msg.dump(), MSG_CANCEL_BLOCK);
-    //     }
-    // }
 
     UserManager::GetInstance()->RemoveFromBlacklist(uid, obj_id);
 }

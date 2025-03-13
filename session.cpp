@@ -161,13 +161,13 @@ void Session::HandleRead(const boost::system::error_code& error,
                            bytes_transfered);
                     _recv_msg_node->_cur_len += bytes_transfered;
                     memset(_data, 0, MAX_LENGTH);
+                    _b_head_parse = true;
                     _socket.async_read_some(boost::asio::buffer(_data, MAX_LENGTH),
                                             std::bind(&Session::HandleRead,
                                                       this,
                                                       std::placeholders::_1,
                                                       std::placeholders::_2,
                                                       _self_shared));
-                    _b_head_parse = true;
                     return;
                 }
 
