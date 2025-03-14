@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.27)
 project(ChatWorld_Server LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)     # 支持C++20标准
+set(CMAKE_CXX_STANDARD_REQUIRED ON) # 支持C++20标准
 
 set(BOOST_ROOT /usr/)
 set(Boost_INCLUDE_DIRS /usr/include/)
@@ -12,8 +12,7 @@ set(Boost_LIBRARY_DIRS /usr/lib/)
 set(Mysql_INCLUDE_DIRS /usr/include/mysql/)
 set(Mysql_LIBRARY_DIRS /usr/lib/)
 
-LINK_LIBRARIES(libmysqlpp.so.3.3.0)  #add lib
-
+link_libraries(libmysqlpp.so.3.3.0) # add lib
 
 find_package(Boost 1.78 REQUIRED COMPONENTS regex)
 
@@ -26,19 +25,30 @@ add_executable(
   ChatWorld_Server
   main.cpp
   ConstValue.h
-  server.h              server.cpp
-  session.h             session.cpp
-  msgnode.h             msgnode.cpp
-  logicsystem.h         logicsystem.cpp
-  singleton.h           singleton.cpp
-  logicnode.h           logicnode.cpp
-  userbroker.h          userbroker.cpp
-  user.h                user.cpp
-  usermanager.h         usermanager.cpp
-  relationalbroker.h    relationalbroker.cpp
-  filetools.h           filetools.cpp
-  filelock.h            filelock.cpp
-)
+  server.h
+  server.cpp
+  session.h
+  session.cpp
+  msgnode.h
+  msgnode.cpp
+  logicsystem.h
+  logicsystem.cpp
+  singleton.h
+  singleton.cpp
+  logicnode.h
+  logicnode.cpp
+  userbroker.h
+  userbroker.cpp
+  user.h
+  user.cpp
+  usermanager.h
+  usermanager.cpp
+  relationalbroker.h
+  relationalbroker.cpp
+  filetools.h
+  filetools.cpp
+  filelock.h
+  filelock.cpp)
 
 target_compile_features(ChatWorld_Server PRIVATE cxx_std_20)
 
