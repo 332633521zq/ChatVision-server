@@ -138,6 +138,7 @@ void Session::HandleRead(const boost::system::error_code& error,
                 msg_id = boost::asio::detail::socket_ops::network_to_host_short(msg_id);
                 if (msg_id > MAX_LENGTH) {
                     std::cout << "invailid msg id length is " << msg_id << std::endl;
+                    _b_head_parse = false;
                     _server->ClearSession(_uuid);
                     return;
                 }
@@ -150,6 +151,7 @@ void Session::HandleRead(const boost::system::error_code& error,
                 // 头部长度非法
                 if (msg_len > MAX_LENGTH) {
                     std::cout << "invailid data length is " << msg_len << std::endl;
+                    _b_head_parse = false;
                     _server->ClearSession(_uuid);
                     return;
                 }

@@ -243,10 +243,14 @@ void LogicSystem::TextChatCallBack(std::shared_ptr<Session> session,
 {
     std::cout << "TextChatCallBack---" << std::endl;
 
+    char first_char = msg_data[0];
+    if (first_char != '{' && first_char != '[')
+        return;
+
     nlohmann::json msg;
     if (msg_data.size() >= 4) {
         std::cout << "msg_data: " << msg_data << std::endl;
-        // msg = nlohmann::json::parse(msg_data);
+        msg = nlohmann::json::parse(msg_data);
     } else {
         std::cout << "msg size is 0" << std::endl;
         return;
@@ -289,6 +293,10 @@ void LogicSystem::TransmitMsg(std::shared_ptr<Session> session,
 {
     std::cout << "TransmitMsg---" << std::endl;
 
+    char first_char = msg_data[0];
+    if (first_char != '{' && first_char != '[')
+        return;
+
     nlohmann::json msg;
     if (msg_data.size() >= 4) {
         std::cout << "msg_data: " << msg_data << std::endl;
@@ -317,6 +325,10 @@ void LogicSystem::FollowCallBack(std::shared_ptr<Session> session,
 {
     std::cout << "FollowCallBack---" << std::endl;
 
+    char first_char = msg_data[0];
+    if (first_char != '{' && first_char != '[')
+        return;
+
     nlohmann::json msg;
     if (msg_data.size() >= 4) {
         std::cout << "msg_data: " << msg_data << std::endl;
@@ -338,6 +350,10 @@ void LogicSystem::CancelFollowCallBack(std::shared_ptr<Session> session,
                                        const std::string &msg_data)
 {
     std::cout << "CancelFollowCallBack---" << std::endl;
+
+    char first_char = msg_data[0];
+    if (first_char != '{' && first_char != '[')
+        return;
 
     nlohmann::json msg;
     if (msg_data.size() >= 4) {
@@ -361,6 +377,10 @@ void LogicSystem::BlockCallBack(std::shared_ptr<Session> session,
 {
     std::cout << "BlockCallBack---" << std::endl;
 
+    char first_char = msg_data[0];
+    if (first_char != '{' && first_char != '[')
+        return;
+
     nlohmann::json msg;
     if (msg_data.size() >= 4) {
         std::cout << "msg_data: " << msg_data << std::endl;
@@ -381,6 +401,10 @@ void LogicSystem::CancelBlockCallBack(std::shared_ptr<Session> session,
                                       const std::string &msg_data)
 {
     std::cout << "CancelBlockCallBack---" << std::endl;
+
+    char first_char = msg_data[0];
+    if (first_char != '{' && first_char != '[')
+        return;
 
     nlohmann::json msg;
     if (msg_data.size() >= 4) {
@@ -403,8 +427,16 @@ void LogicSystem::AVChatCallBack(std::shared_ptr<Session> session,
 {
     std::cout << "VideoChatCallBack---" << std::endl;
 
+    // for (int i = 0; i < msg_data.length(); ++i) {
+    //     std::cout << std::hex << (int) (unsigned char) msg_data[i] << " ";
+    // }
+
+    char first_char = msg_data[0];
+    if (first_char != '{' && first_char != '[')
+        return;
+
     nlohmann::json msg;
-    if (msg_data.size() >= 4) {
+    if (!msg_data.empty()) {
         std::cout << "msg_data: " << msg_data << std::endl;
         msg = nlohmann::json::parse(msg_data);
     } else {
