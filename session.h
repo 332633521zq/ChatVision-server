@@ -29,6 +29,7 @@ public:
     void Send(char* msg, int max_length, short msgid); // 用于发送数据，以及往发送队列里添加数据
     void Send(std::string msg, short msgid);
     void Close();
+    void RemoveOldSession(std::string uuid);
 
     std::shared_ptr<Session> SharedSelf(); // 保证智能指针的引用计数
 

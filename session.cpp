@@ -17,10 +17,15 @@ Session::Session(boost::asio::io_context& io_context, Server* server)
 
 Session::~Session()
 {
-    // Close();
-    // _server->ClearSession(_uuid);
     UserManager::GetInstance()->DisconnectUser(_uuid);
     std::cout << "~Session " << _uuid << " destruct\n\n" << std::endl;
+}
+
+void Session::RemoveOldSession(std::string uuid)
+{
+    std::cout << "RemoveOldSession" << std::endl;
+    (_server->FindSessionByUuid(uuid))->Close();
+    _server->ClearSession(uuid);
 }
 
 tcp::socket& Session::GetSocket()

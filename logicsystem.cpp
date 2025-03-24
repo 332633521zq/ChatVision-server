@@ -184,6 +184,12 @@ void LogicSystem::LoginCallBack(std::shared_ptr<Session> session,
     msg = nlohmann::json::parse(msg_data);
     unsigned int uid = msg.at("uid");
 
+    std::string uuid = UserManager::GetInstance()->GetUuidByUid(uid);
+    if (uuid != "") {
+        std::cout << "remove uuid:" << uuid << std::endl;
+        session->RemoveOldSession(uuid);
+    }
+
     UserManager::GetInstance()->ConnectUser(uid, session->GetUuid());
 
     // session->Send(msg.dump(), msg_id);
