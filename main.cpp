@@ -6,6 +6,7 @@
 int main()
 {
     try {
+        // system("sudo ifconfig enp92s0 192.168.1.100 netmask 255.255.255.0");
         boost::asio::io_context io_context;
         std::cout << "main" << std::endl;
         Server s(io_context, 10086);
