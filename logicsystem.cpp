@@ -251,7 +251,7 @@ void LogicSystem::TextChatCallBack(std::shared_ptr<Session> session,
     nlohmann::json msg;
     if (msg_data.size() >= 4) {
         std::cout << "msg_data: " << msg_data << std::endl;
-        // msg = nlohmann::json::parse(msg_data);
+        msg = nlohmann::json::parse(msg_data);
     } else {
         std::cout << "msg size is 0" << std::endl;
         return;
