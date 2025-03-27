@@ -32,6 +32,7 @@ constexpr int MAX_LENGTH = 1024 * 20;
 *   1018: 对方不在线     **signal
 *   1019: 随机推送可能想认识的用户
 *   1022: 聊过天的用户基本信息
+*   1023: 搜索聊天对象的id
 */
 
 enum MSG_IDS {
@@ -56,7 +57,8 @@ enum MSG_IDS {
     MSG_RANDOM_PUSH = 1019,
     MSG_AGREE_VIDEO = 1020,
     MSG_AGREE_AUDIO = 1021,
-    MSG_CHATTED_USER = 1022
+    MSG_CHATTED_USER = 1022,
+    MSG_SEARCH = 1023
 };
 
 enum Relation_IDS : unsigned int {

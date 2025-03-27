@@ -57,6 +57,9 @@ public:
     void RandomPushChatCallBack(std::shared_ptr<Session> session,
                                 const short& msg_id,
                                 const std::string& msg_data);
+    void SearchUserCallBack(std::shared_ptr<Session> session,
+                            const short& msg_id,
+                            const std::string& msg_data);
 
 private:
     LogicSystem();

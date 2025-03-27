@@ -158,6 +158,11 @@ void LogicSystem::RegisterCallBacks()
                                                std::placeholders::_1,
                                                std::placeholders::_2,
                                                std::placeholders::_3);
+    _fun_callback[MSG_SEARCH] = std::bind(&LogicSystem::SearchUserCallBack,
+                                          this,
+                                          std::placeholders::_1,
+                                          std::placeholders::_2,
+                                          std::placeholders::_3);
 }
 
 void LogicSystem::HelloWorldCallBack(std::shared_ptr<Session> session,
@@ -499,4 +504,28 @@ std::unordered_set<unsigned int> LogicSystem::GenerateRandomNumbers(unsigned int
     }
 
     return randomNumbers;
+}
+//查找User
+void LogicSystem::SearchUserCallBack(std::shared_ptr<Session> session,
+                                     const short &msg_id,
+                                     const std::string &msg_data)
+{
+    std::cout << "SearchCallBack---!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+
+    nlohmann::json msg;
+    if (msg_data.size() >= 4) {
+        std::cout << "msg_data: " << msg_data << std::endl;
+        msg = nlohmann::json::parse(msg_data);
+    } else {
+        std::cout << "msg size is 0" << std::endl;
+        return;
+    }
+
+    unsigned int uid = msg.at("uid");
+    unsigned int obj_id = msg.at("object_id");
+
+    // 推送用户的基本信息
+    nlohmann::json user_info = UserManager::GetInstance()->GetUserInformation(obj_id);
+    msg["data"] = user_info;
+    session->Send(msg.dump(), MSG_SEARCH);
 }
