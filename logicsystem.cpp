@@ -189,10 +189,8 @@ void LogicSystem::LoginCallBack(std::shared_ptr<Session> session,
         std::cout << "remove uuid:" << uuid << std::endl;
         session->RemoveOldSession(uuid);
     }
-
     UserManager::GetInstance()->ConnectUser(uid, session->GetUuid());
 
-    // session->Send(msg.dump(), msg_id);
     // 推送用户的基本信息
     nlohmann::json user_info = UserManager::GetInstance()->GetUserInformation(uid);
     msg["data"] = user_info;

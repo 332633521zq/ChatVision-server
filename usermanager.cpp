@@ -54,7 +54,8 @@ void UserManager::DisconnectUser(std::string uuid)
     _user_broker->UpdateOnlineState(GetUidByUuid(uuid),
                                     false,
                                     std::format("{:%Y-%m-%d %H:%M:%S}", now_seconds));
-    ClearUuid(uuid);
+    if (GetUidByUuid(uuid) != 0)
+        ClearUuid(uuid);
 }
 
 void UserManager::ConnectUser(unsigned int uid, std::string uuid)
