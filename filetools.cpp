@@ -97,8 +97,11 @@ bool FileTools::SaveTextMsg(unsigned int uid1,
 
     // 获取当前时间
     auto nowtime = std::chrono::system_clock::now();
-    auto now_seconds = std::chrono::time_point_cast<std::chrono::seconds>(nowtime);
-    std::string timestamp = std::format("{:%Y-%m-%d %H:%M:%S}", now_seconds);
+    auto now_c = std::chrono::system_clock::to_time_t(nowtime);
+    std::tm local_tm = *std::localtime(&now_c);
+    std::ostringstream oss;
+    oss << std::put_time(&local_tm, "%Y-%m-%d %H:%M:%S");
+    std::string timestamp = oss.str();
 
     std::string forward_state = is_forwarded == true ? "**Forwarded**" : "**Unforward**";
 

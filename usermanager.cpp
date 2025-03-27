@@ -48,12 +48,14 @@ std::string UserManager::LastOfflineTime(unsigned int uid)
 void UserManager::DisconnectUser(std::string uuid)
 {
     // 获取当前时间
-    auto now = std::chrono::system_clock::now();
-    auto now_seconds = std::chrono::time_point_cast<std::chrono::seconds>(now);
-    std::cout << std::format("{:%Y-%m-%d %H:%M:%S}", now_seconds) << std::endl;
-    _user_broker->UpdateOnlineState(GetUidByUuid(uuid),
-                                    false,
-                                    std::format("{:%Y-%m-%d %H:%M:%S}", now_seconds));
+    auto nowtime = std::chrono::system_clock::now();
+    auto now_c = std::chrono::system_clock::to_time_t(nowtime);
+    std::tm local_tm = *std::localtime(&now_c);
+    std::ostringstream oss;
+    oss << std::put_time(&local_tm, "%Y-%m-%d %H:%M:%S");
+    std::string timestamp = oss.str();
+
+    _user_broker->UpdateOnlineState(GetUidByUuid(uuid), false, timestamp);
     if (GetUidByUuid(uuid) != 0)
         ClearUuid(uuid);
 }
