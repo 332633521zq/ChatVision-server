@@ -481,7 +481,11 @@ void LogicSystem::RandomPushChatCallBack(std::shared_ptr<Session> session,
     nlohmann::json user_info;
     std::unordered_set<unsigned int> random_users = GenerateRandomNumbers(20000000, 20000019, 5);
     for (auto user_id : random_users) {
-        user_info[std::to_string(user_id)] = UserManager::GetInstance()->GetUserInformation(user_id);
+        json tmp = UserManager::GetInstance()->GetUserInformation(user_id);
+        std::string relation = std::to_string(
+            UserManager::GetInstance()->GetRelation(msg["uid"], user_id));
+        tmp["relation"] = relation;
+        user_info[std::to_string(user_id)] = tmp;
         std::cout << user_info[std::to_string(user_id)] << std::endl;
     }
     msg["data"] = user_info.dump();

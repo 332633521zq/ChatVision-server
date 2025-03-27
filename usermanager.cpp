@@ -199,3 +199,8 @@ void UserManager::AnswerFirstChat(const unsigned int& uid, const unsigned int& o
         _user_broker->UpdateChatPermission(uid, object_id, true);
     }
 }
+
+unsigned int UserManager::GetRelation(const unsigned int& uid, const unsigned int& object_id)
+{
+    return _user_broker->GetRelation(uid, object_id);
+}
