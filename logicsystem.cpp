@@ -158,6 +158,13 @@ void LogicSystem::RegisterCallBacks()
                                                std::placeholders::_1,
                                                std::placeholders::_2,
                                                std::placeholders::_3);
+
+    _fun_callback[MSG_ONLINE_STATE] = std::bind(&LogicSystem::OnlineStateCallBack,
+                                               this,
+                                               std::placeholders::_1,
+                                               std::placeholders::_2,
+                                               std::placeholders::_3);
+
 }
 
 void LogicSystem::HelloWorldCallBack(std::shared_ptr<Session> session,
@@ -490,6 +497,26 @@ void LogicSystem::RandomPushChatCallBack(std::shared_ptr<Session> session,
     }
     msg["data"] = user_info.dump();
     session->Send(msg.dump(), MSG_RANDOM_PUSH);
+}
+
+void LogicSystem::OnlineStateCallBack(std::shared_ptr<Session> session, const short &msg_id, const std::string &msg_data)
+{
+    std::cout << "OnlineStateCallBack---" << std::endl;
+
+    nlohmann::json msg;
+    if (msg_data.size() >= 4) {
+        std::cout << "msg_data: " << msg_data << std::endl;
+        msg = nlohmann::json::parse(msg_data);
+    } else {
+        std::cout << "msg size is 0" << std::endl;
+        return;
+    }
+
+    unsigned int obj_id = msg.at("object_id");
+
+    msg["data"] = UserManager::GetInstance()->GetOnlineState(obj_id);
+    std::cout<<"onlinestate:"<<msg["data"]<<std::endl;
+    session->Send(msg.dump(),MSG_ONLINE_STATE);
 }
 
 // 生成指定区间范围内的整数随机数

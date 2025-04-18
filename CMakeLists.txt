@@ -33,11 +33,12 @@ add_executable(
   singleton.h           singleton.cpp
   logicnode.h           logicnode.cpp
   userbroker.h          userbroker.cpp
-  user.h                user.cpp
+
   usermanager.h         usermanager.cpp
   relationalbroker.h    relationalbroker.cpp
   filetools.h           filetools.cpp
   filelock.h            filelock.cpp
+  ioservicepool.h       ioservicepool.cpp
 )
 
 target_compile_features(ChatWorld_Server PRIVATE cxx_std_20)

@@ -204,3 +204,8 @@ unsigned int UserManager::GetRelation(const unsigned int& uid, const unsigned in
 {
     return _user_broker->GetRelation(uid, object_id);
 }
+
+bool UserManager::GetOnlineState(const unsigned int &uid)
+{
+    return _user_broker->IsOnline(uid);
+}

@@ -97,6 +97,14 @@ std::string UserBroker::LastOfflineTime(unsigned int uid)
     return "";
 }
 
+bool UserBroker::IsOnline(const unsigned int &uid)
+{
+    std::string command = "select IsOnline from OnlineState where (UserID=" + std::to_string(uid)
+            + ");";
+    mysqlpp::StoreQueryResult result = RelationalBroker::Query(command);
+    return (const int)result[0]["IsOnline"] == 1;
+}
+
 // blacklist  obj_blacklist   follower following er&&ing
 // 0:拉黑  1:被拉黑   2:陌生人   3:被关注   4:关注    5:互关
 unsigned int UserBroker::GetRelation(unsigned int uid, unsigned int object_id)

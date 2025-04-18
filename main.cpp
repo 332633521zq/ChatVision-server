@@ -1,4 +1,5 @@
 #include "boost/asio.hpp"
+#include "ioservicepool.h"
 #include "server.h"
 #include <boost/signals2.hpp>
 #include <iostream>
@@ -6,6 +7,7 @@
 int main()
 {
     try {
+        auto pool = IOServicePool::GetInstance();
         boost::asio::io_context io_context;
         std::cout << "main" << std::endl;
         boost::asio::signal_set signals(io_context, SIGINT, SIGTERM);

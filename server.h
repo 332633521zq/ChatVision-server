@@ -10,6 +10,7 @@ class Server
 {
 public:
     Server(boost::asio::io_context& io_context, short port);
+    ~Server();
     std::shared_ptr<Session> FindSessionByUuid(std::string uuid);
     void ClearSession(std::string uuid);
 
