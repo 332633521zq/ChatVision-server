@@ -165,6 +165,12 @@ void LogicSystem::RegisterCallBacks()
                                                std::placeholders::_2,
                                                std::placeholders::_3);
 
+    _fun_callback[MSG_FILE] = std::bind(&LogicSystem::SendFileCallBack,
+                                               this,
+                                               std::placeholders::_1,
+                                               std::placeholders::_2,
+                                               std::placeholders::_3);
+
 }
 
 void LogicSystem::HelloWorldCallBack(std::shared_ptr<Session> session,
@@ -499,7 +505,9 @@ void LogicSystem::RandomPushChatCallBack(std::shared_ptr<Session> session,
     session->Send(msg.dump(), MSG_RANDOM_PUSH);
 }
 
-void LogicSystem::OnlineStateCallBack(std::shared_ptr<Session> session, const short &msg_id, const std::string &msg_data)
+void LogicSystem::OnlineStateCallBack(std::shared_ptr<Session> session,
+                                      const short &msg_id,
+                                      const std::string &msg_data)
 {
     std::cout << "OnlineStateCallBack---" << std::endl;
 
@@ -517,6 +525,35 @@ void LogicSystem::OnlineStateCallBack(std::shared_ptr<Session> session, const sh
     msg["data"] = UserManager::GetInstance()->GetOnlineState(obj_id);
     std::cout<<"onlinestate:"<<msg["data"]<<std::endl;
     session->Send(msg.dump(),MSG_ONLINE_STATE);
+}
+
+void LogicSystem::SendFileCallBack(std::shared_ptr<Session> session,
+                                   const short &msg_id,
+                                   const std::string &msg_data)
+{
+    std::cout << "SendFileCallBack---" << std::endl;
+
+    nlohmann::json msg;
+    if (msg_data.size() >= 4) {
+        std::cout << "msg_data: " << msg_data << std::endl;
+        msg = nlohmann::json::parse(msg_data);
+    } else {
+        std::cout << "msg size is 0" << std::endl;
+        return;
+    }
+
+    unsigned int uid = msg.at("uid");
+    unsigned int obj_id = msg.at("object_id");
+    std::string str_data = msg.at("data");
+    nlohmann::json data = nlohmann::json::parse(str_data);
+
+    std::filesystem::path filename = data["filename"];
+    size_t data_size = data["data_size"];
+    std::string chunk_data=data["chunk_data"];
+
+    FileTools::GetInstance()->SaveFileMsg(uid,obj_id,filename,chunk_data,data_size);    // 将文件存入本地
+
+    TransmitMsg(session,MSG_FILE,msg_data);
 }
 
 // 生成指定区间范围内的整数随机数

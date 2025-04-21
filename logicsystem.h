@@ -60,6 +60,9 @@ public:
     void OnlineStateCallBack(std::shared_ptr<Session> session,
                              const short& msg_id,
                              const std::string& msg_data);
+    void SendFileCallBack(std::shared_ptr<Session> session,
+                             const short& msg_id,
+                             const std::string& msg_data);
 
 private:
     LogicSystem();
