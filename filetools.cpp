@@ -4,6 +4,9 @@
 #include <chrono>
 #include <ctime>
 #include <iostream>
+#include <openssl/bio.h>
+#include <openssl/evp.h>
+#include <openssl/buffer.h>
 
 FileTools::FileTools() {}
 
@@ -36,6 +39,7 @@ bool FileTools::CreateFile(std::filesystem::path file_path)
 
 void FileTools::InitChatMsgFiles(unsigned int uid1, unsigned int uid2)
 {
+    std::cout << "InitChatMsgFiles ----------------------"<<std::endl;
     std::filesystem::path root_path = std::filesystem::current_path() / "chatmsgs";
     std::string dir_name;
     if (uid1 < uid2) {
@@ -47,16 +51,19 @@ void FileTools::InitChatMsgFiles(unsigned int uid1, unsigned int uid2)
     std::filesystem::path picture_path = root_path / dir_name / "picture";
     std::filesystem::path video_path = root_path / dir_name / "video";
     std::filesystem::path audio_path = root_path / dir_name / "audio";
+    std::filesystem::path file_path = root_path / dir_name / "file";
 
     std::cout << "\ntext_path: " << text_path << std::endl;
     std::cout << "picture_path" << picture_path << std::endl;
     std::cout << "video_path" << video_path << std::endl;
     std::cout << "audio_path" << audio_path << std::endl;
+    std::cout << "file_path" << file_path << std::endl;
 
     CreateDir(text_path);
     CreateDir(picture_path);
     CreateDir(video_path);
     CreateDir(audio_path);
+    CreateDir(file_path);
 }
 
 bool FileTools::SaveTextMsg(unsigned int uid1,
@@ -97,8 +104,11 @@ bool FileTools::SaveTextMsg(unsigned int uid1,
 
     // 获取当前时间
     auto nowtime = std::chrono::system_clock::now();
-    auto now_seconds = std::chrono::time_point_cast<std::chrono::seconds>(nowtime);
-    std::string timestamp = std::format("{:%Y-%m-%d %H:%M:%S}", now_seconds);
+    auto now_c = std::chrono::system_clock::to_time_t(nowtime);
+    std::tm local_tm = *std::localtime(&now_c);
+    std::ostringstream oss;
+    oss << std::put_time(&local_tm, "%Y-%m-%d %H:%M:%S");
+    std::string timestamp = oss.str();
 
     std::string forward_state = is_forwarded == true ? "**Forwarded**" : "**Unforward**";
 
@@ -109,6 +119,83 @@ bool FileTools::SaveTextMsg(unsigned int uid1,
     file.close();
 
     file_lock.unlock();
+    return true;
+}
+
+
+// Base64编码工具函数
+std::string Base64Encode(const unsigned char* input, size_t length) {
+    BIO *bio, *b64;
+    BUF_MEM *bufferPtr;
+
+    b64 = BIO_new(BIO_f_base64());
+    bio = BIO_new(BIO_s_mem());
+    bio = BIO_push(b64, bio);
+
+    BIO_set_flags(bio, BIO_FLAGS_BASE64_NO_NL); // 不换行
+    BIO_write(bio, input, length);
+    BIO_flush(bio);
+    BIO_get_mem_ptr(bio, &bufferPtr);
+
+    std::string result(bufferPtr->data, bufferPtr->length);
+    BIO_free_all(bio);
+
+    return result;
+}
+
+std::vector<unsigned char> Base64Decode(const std::string& input) {
+    // 创建Base64解码的BIO链
+    BIO* b64 = BIO_new(BIO_f_base64());
+    BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL); // 不处理换行符
+
+    // 将输入字符串放入内存BIO
+    BIO* mem = BIO_new_mem_buf(input.data(), static_cast<int>(input.length()));
+    mem = BIO_push(b64, mem);
+
+    // 准备输出缓冲区
+    std::vector<unsigned char> output(input.length()); // 解码后数据不会比输入长
+    int decoded_length = BIO_read(mem, output.data(), static_cast<int>(input.length()));
+
+    // 清理资源
+    BIO_free_all(mem);
+
+    if(decoded_length < 0) {
+        throw std::runtime_error("Base64解码失败");
+    }
+
+    output.resize(decoded_length);
+    return output;
+}
+
+bool FileTools::SaveFileMsg(unsigned int uid1,
+                            unsigned int uid2,
+                            std::filesystem::path file_name,
+                            const std::string file_content,
+                            size_t length)
+{
+    // 判断是否两位用户是否有聊天记录
+    std::string msg_dir;
+    if (uid1 < uid2) {
+        msg_dir = std::to_string(uid1) + "_" + std::to_string(uid2);
+    } else {
+        msg_dir = std::to_string(uid2) + "_" + std::to_string(uid1);
+    }
+    std::filesystem::path dir_path = std::filesystem::current_path() / "chatmsgs" / msg_dir;
+    file_name = dir_path / "file" /file_name;
+
+    if (!std::filesystem::exists(dir_path)) {
+        InitChatMsgFiles(uid1, uid2);
+    }
+
+    std::ofstream file(file_name,std::ios::app | std::ios::binary);
+    if (!file) {
+        std::cerr << "Failed to create file: " << file_name << std::endl;
+        return false;
+    }
+
+    auto decode = Base64Decode(file_content);
+    file.write(std::string(decode.begin(),decode.end()).c_str(), length);
+
     return true;
 }
 

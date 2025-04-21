@@ -15,6 +15,7 @@ set(Mysql_LIBRARY_DIRS /usr/lib/)
 link_libraries(libmysqlpp.so.3.3.0) # add lib
 
 find_package(Boost 1.78 REQUIRED COMPONENTS regex)
+find_package(OpenSSL 1.1 REQUIRED)
 
 link_directories(${Boost_LIBRARY_DIRS} ${Mysql_LIBRARY_DIRS})
 include_directories(${Boost_INCLUDE_DIRS} ${Mysql_INCLUDE_DIRS})
@@ -39,8 +40,6 @@ add_executable(
   logicnode.cpp
   userbroker.h
   userbroker.cpp
-  user.h
-  user.cpp
   usermanager.h
   usermanager.cpp
   relationalbroker.h
@@ -48,11 +47,14 @@ add_executable(
   filetools.h
   filetools.cpp
   filelock.h
-  filelock.cpp)
+  filelock.cpp
+  ioservicepool.h
+  ioservicepool.cpp)
 
 target_compile_features(ChatWorld_Server PRIVATE cxx_std_20)
 
-target_link_libraries(ChatWorld_Server PRIVATE nlohmann_json)
+target_link_libraries(ChatWorld_Server PRIVATE nlohmann_json OpenSSL::SSL
+                                               OpenSSL::Crypto)
 # include(GNUInstallDirs) install(TARGETS ChatWorld_Server LIBRARY DESTINATION
 # ${CMAKE_INSTALL_LIBDIR} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} )
 

@@ -1,5 +1,6 @@
 #include "server.h"
 #include "relationalbroker.h"
+#include "ioservicepool.h"
 #include "session.h"
 #include <iostream>
 
@@ -14,9 +15,16 @@ Server::Server(boost::asio::io_context& io_context, short port)
     StartAccept();
 }
 
+Server::~Server()
+{
+    _acceptor.close();
+    std::cout << "Server destruct"<<std::endl;
+}
+
 void Server::StartAccept()
 {
-    std::shared_ptr<Session> new_session = std::make_shared<Session>(_io_context, this);
+    auto& io_context = IOServicePool::GetInstance()->GetIOService();
+    std::shared_ptr<Session> new_session = std::make_shared<Session>(io_context, this);
     _acceptor
         .async_accept(new_session->GetSocket(),
                       std::bind(&Server::HandleAccept, this, new_session, std::placeholders::_1));

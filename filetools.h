@@ -20,6 +20,10 @@ public:
                      unsigned int uid2,
                      std::string msg_data,
                      bool is_forwarded = false);
+    bool SaveFileMsg(unsigned int uid1,
+                     unsigned int uid2,
+                     std::filesystem::path file_name,
+                     const std::string file_content, size_t length);
     std::vector<std::string> GetOfflineTextMsg(unsigned int conn_uid, unsigned int uid2);
     std::filesystem::path GetLatestModifiedFile(const std::string& directory);
     std::time_t GetFileLatestModifyTime(std::filesystem::path file_path);

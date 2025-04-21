@@ -18,6 +18,7 @@ public:
     void UpdateOnlineState(unsigned int uid, bool is_online, std::string datetime); // 下线
     void UpdateOnlineState(unsigned int uid, bool is_online);                       // 上线
     std::string LastOfflineTime(unsigned int uid);
+    bool IsOnline(const unsigned int &uid);
     bool IsChatted(unsigned int uid, unsigned int object_id);
     void FirstChat(const unsigned int &uid, const unsigned int &object_id);
     unsigned int GetRelation(unsigned int uid, unsigned int object_id);

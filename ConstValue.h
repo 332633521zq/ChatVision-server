@@ -32,7 +32,10 @@ constexpr int MAX_LENGTH = 1024 * 2;
 *   1018: 对方不在线     **signal
 *   1019: 随机推送可能想认识的用户
 *   1022: 聊过天的用户基本信息
-*   1023: 搜索聊天对象的id
+*   1023: 查找用户
+*   1024: 获取朋友在线状态
+*   1025: 发送文件
+*
 */
 
 enum MSG_IDS {
@@ -58,7 +61,9 @@ enum MSG_IDS {
     MSG_AGREE_VIDEO = 1020,
     MSG_AGREE_AUDIO = 1021,
     MSG_CHATTED_USER = 1022,
-    MSG_SEARCH = 1023
+    MSG_SEARCH = 1023,
+    MSG_ONLINE_STATE = 1024,
+    MSG_FILE = 1025
 };
 
 enum Relation_IDS : unsigned int {

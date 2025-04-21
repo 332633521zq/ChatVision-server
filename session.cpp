@@ -38,6 +38,28 @@ std::string& Session::GetUuid()
     return _uuid;
 }
 
+void Session::StartRead()
+{
+    outstanding_ops_++;
+    _socket.async_read_some(boost::asio::buffer(_data, MAX_LENGTH),
+                            std::bind(&Session::HandleRead,
+                                      this,
+                                      std::placeholders::_1,
+                                      std::placeholders::_2,
+                                      SharedSelf()));
+}
+
+void Session::StartWrite(std::shared_ptr<SendNode>& msgnode)
+{
+    outstanding_ops_++;
+    boost::asio::async_write(_socket,
+                             boost::asio::buffer(msgnode->_data, msgnode->_total_len),
+                             std::bind(&Session::HandleWrite,
+                                       this,
+                                       std::placeholders::_1,
+                                       SharedSelf()));
+}
+
 void Session::Start()
 {
     memset(_data, 0, MAX_LENGTH);
@@ -267,25 +289,4 @@ void Session::Send(std::string msg, short msgid)
 
     auto& msgnode = _send_que.front();
     StartWrite(msgnode);
-}
-void Session::StartRead()
-{
-    outstanding_ops_++;
-    _socket.async_read_some(boost::asio::buffer(_data, MAX_LENGTH),
-                            std::bind(&Session::HandleRead,
-                                      this,
-                                      std::placeholders::_1,
-                                      std::placeholders::_2,
-                                      SharedSelf()));
-}
-
-void Session::StartWrite(std::shared_ptr<SendNode>& msgnode)
-{
-    outstanding_ops_++;
-    boost::asio::async_write(_socket,
-                             boost::asio::buffer(msgnode->_data, msgnode->_total_len),
-                             std::bind(&Session::HandleWrite,
-                                       this,
-                                       std::placeholders::_1,
-                                       SharedSelf()));
 }
