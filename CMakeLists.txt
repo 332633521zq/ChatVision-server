@@ -2,23 +2,10 @@ cmake_minimum_required(VERSION 3.27)
 
 project(ChatWorld_Server LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON) # 支持C++20标准
-
-set(BOOST_ROOT /usr/)
-set(Boost_INCLUDE_DIRS /usr/include/)
-set(Boost_LIBRARY_DIRS /usr/lib/)
-
-set(Mysql_INCLUDE_DIRS /usr/include/mysql/)
-set(Mysql_LIBRARY_DIRS /usr/lib/)
-
 link_libraries(libmysqlpp.so.3.3.0) # add lib
 
 find_package(Boost 1.78 REQUIRED COMPONENTS regex)
 find_package(OpenSSL 1.1 REQUIRED)
-
-link_directories(${Boost_LIBRARY_DIRS} ${Mysql_LIBRARY_DIRS})
-include_directories(${Boost_INCLUDE_DIRS} ${Mysql_INCLUDE_DIRS})
 
 add_subdirectory(json)
 
@@ -50,7 +37,9 @@ add_executable(
   filelock.cpp
   ioservicepool.h
   ioservicepool.cpp)
-
+target_include_directories(ChatWorld_Server PRIVATE /usr/include
+                                                    /usr/include/mysql)
+target_link_directories(ChatWorld_Server PRIVATE /usr/lib)
 target_compile_features(ChatWorld_Server PRIVATE cxx_std_20)
 
 target_link_libraries(ChatWorld_Server PRIVATE nlohmann_json OpenSSL::SSL
