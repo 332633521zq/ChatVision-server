@@ -17,10 +17,15 @@ Session::Session(boost::asio::io_context& io_context, Server* server)
 
 Session::~Session()
 {
-    // Close();
-    // _server->ClearSession(_uuid);
     UserManager::GetInstance()->DisconnectUser(_uuid);
     std::cout << "~Session " << _uuid << " destruct\n\n" << std::endl;
+}
+
+void Session::RemoveOldSession(std::string uuid)
+{
+    std::cout << "RemoveOldSession" << std::endl;
+    (_server->FindSessionByUuid(uuid))->Close();
+    _server->ClearSession(uuid);
 }
 
 tcp::socket& Session::GetSocket()
@@ -36,20 +41,20 @@ std::string& Session::GetUuid()
 void Session::Start()
 {
     memset(_data, 0, MAX_LENGTH);
-    _socket.async_read_some(boost::asio::buffer(_data, MAX_LENGTH),
-                            std::bind(&Session::HandleRead,
-                                      this,
-                                      std::placeholders::_1,
-                                      std::placeholders::_2,
-                                      SharedSelf()));
+    StartRead();
 }
 
 void Session::Close()
 {
-    // boost::system::error_code ec;
-    // _socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
-    _socket.close();
+    if (_b_close)
+        return;
     _b_close = true;
+    boost::system::error_code ec;
+    _socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec); // 通知对端关闭
+
+    if (outstanding_ops_ == 0) {
+        _socket.close(ec); // 无未完成操作，直接关闭
+    }
 }
 
 std::shared_ptr<Session> Session::SharedSelf()
@@ -73,17 +78,13 @@ void Session::PrintRecvData(char* data, int length)
 void Session::HandleWrite(const boost::system::error_code& error,
                           std::shared_ptr<Session> _self_shared)
 {
+    outstanding_ops_--;
     if (!error) {
         std::lock_guard<std::mutex> lock(_send_lock);
         _send_que.pop();
         if (!_send_que.empty()) {
             auto& msgnode = _send_que.front();
-            boost::asio::async_write(_socket,
-                                     boost::asio::buffer(msgnode->_data, msgnode->_total_len),
-                                     std::bind(&Session::HandleWrite,
-                                               this,
-                                               std::placeholders::_1,
-                                               _self_shared));
+            StartWrite(msgnode);
         }
     } else {
         std::cout << "handle write failed, error is" << error.what() << std::endl;
@@ -95,6 +96,7 @@ void Session::HandleRead(const boost::system::error_code& error,
                          size_t bytes_transfered, //接收到的还未处理的数据
                          std::shared_ptr<Session> _self_shared)
 {
+    outstanding_ops_--;
     if (!error) {
         // PrintRecvData(_data, bytes_transfered);
         // std::chrono::milliseconds dura(2000);
@@ -113,12 +115,7 @@ void Session::HandleRead(const boost::system::error_code& error,
                            bytes_transfered);
                     _recv_head_node->_cur_len += bytes_transfered;
                     ::memset(_data, 0, MAX_LENGTH);
-                    _socket.async_read_some(boost::asio::buffer(_data, MAX_LENGTH),
-                                            std::bind(&Session::HandleRead,
-                                                      this,
-                                                      std::placeholders::_1,
-                                                      std::placeholders::_2,
-                                                      _self_shared));
+                    StartRead();
                     return;
                 }
 
@@ -138,6 +135,7 @@ void Session::HandleRead(const boost::system::error_code& error,
                 msg_id = boost::asio::detail::socket_ops::network_to_host_short(msg_id);
                 if (msg_id > MAX_LENGTH) {
                     std::cout << "invailid msg id length is " << msg_id << std::endl;
+                    _b_head_parse = false;
                     _server->ClearSession(_uuid);
                     return;
                 }
@@ -150,6 +148,7 @@ void Session::HandleRead(const boost::system::error_code& error,
                 // 头部长度非法
                 if (msg_len > MAX_LENGTH) {
                     std::cout << "invailid data length is " << msg_len << std::endl;
+                    _b_head_parse = false;
                     _server->ClearSession(_uuid);
                     return;
                 }
@@ -162,12 +161,7 @@ void Session::HandleRead(const boost::system::error_code& error,
                     _recv_msg_node->_cur_len += bytes_transfered;
                     memset(_data, 0, MAX_LENGTH);
                     _b_head_parse = true;
-                    _socket.async_read_some(boost::asio::buffer(_data, MAX_LENGTH),
-                                            std::bind(&Session::HandleRead,
-                                                      this,
-                                                      std::placeholders::_1,
-                                                      std::placeholders::_2,
-                                                      _self_shared));
+                    StartRead();
                     return;
                 }
 
@@ -186,12 +180,7 @@ void Session::HandleRead(const boost::system::error_code& error,
                 _b_head_parse = false;
                 if (bytes_transfered <= 0) {
                     ::memset(_data, 0, MAX_LENGTH);
-                    _socket.async_read_some(boost::asio::buffer(_data, MAX_LENGTH),
-                                            std::bind(&Session::HandleRead,
-                                                      this,
-                                                      std::placeholders::_1,
-                                                      std::placeholders::_2,
-                                                      _self_shared));
+                    StartRead();
                     return;
                 }
                 continue;
@@ -209,12 +198,7 @@ void Session::HandleRead(const boost::system::error_code& error,
                        bytes_transfered);
                 _recv_msg_node->_cur_len += bytes_transfered;
                 memset(_data, 0, MAX_LENGTH);
-                _socket.async_read_some(boost::asio::buffer(_data, MAX_LENGTH),
-                                        std::bind(&Session::HandleRead,
-                                                  this,
-                                                  std::placeholders::_1,
-                                                  std::placeholders::_2,
-                                                  _self_shared));
+                StartRead();
                 return;
             }
             memcpy(_recv_msg_node->_data + _recv_msg_node->_cur_len, _data + copy_len, remain_msg);
@@ -231,12 +215,7 @@ void Session::HandleRead(const boost::system::error_code& error,
             _recv_msg_node->Clear();
             if (bytes_transfered <= 0) {
                 ::memset(_data, 0, MAX_LENGTH);
-                _socket.async_read_some(boost::asio::buffer(_data, MAX_LENGTH),
-                                        std::bind(&Session::HandleRead,
-                                                  this,
-                                                  std::placeholders::_1,
-                                                  std::placeholders::_2,
-                                                  _self_shared));
+                StartRead();
                 return;
             }
             continue;
@@ -266,12 +245,7 @@ void Session::Send(char* msg, int max_length, short msgid)
 
     auto& msgnode = _send_que.front();
     std::cout << "msgnode data is: " << msgnode->_data << std::endl;
-    boost::asio::async_write(_socket,
-                             boost::asio::buffer(msgnode->_data, msgnode->_total_len),
-                             std::bind(&Session::HandleWrite,
-                                       this,
-                                       std::placeholders::_1,
-                                       SharedSelf()));
+    StartWrite(msgnode);
 }
 
 void Session::Send(std::string msg, short msgid)
@@ -292,6 +266,22 @@ void Session::Send(std::string msg, short msgid)
     }
 
     auto& msgnode = _send_que.front();
+    StartWrite(msgnode);
+}
+void Session::StartRead()
+{
+    outstanding_ops_++;
+    _socket.async_read_some(boost::asio::buffer(_data, MAX_LENGTH),
+                            std::bind(&Session::HandleRead,
+                                      this,
+                                      std::placeholders::_1,
+                                      std::placeholders::_2,
+                                      SharedSelf()));
+}
+
+void Session::StartWrite(std::shared_ptr<SendNode>& msgnode)
+{
+    outstanding_ops_++;
     boost::asio::async_write(_socket,
                              boost::asio::buffer(msgnode->_data, msgnode->_total_len),
                              std::bind(&Session::HandleWrite,

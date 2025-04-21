@@ -29,6 +29,7 @@ public:
     void Send(char* msg, int max_length, short msgid); // 用于发送数据，以及往发送队列里添加数据
     void Send(std::string msg, short msgid);
     void Close();
+    void RemoveOldSession(std::string uuid);
 
     std::shared_ptr<Session> SharedSelf(); // 保证智能指针的引用计数
 
@@ -38,13 +39,17 @@ private:
                     size_t bytes_transfered,
                     std::shared_ptr<Session> _self_shared);
     void HandleWrite(const boost::system::error_code& error, std::shared_ptr<Session> _self_shared);
+    void StartRead();
+
+    void StartWrite(std::shared_ptr<SendNode>& msgnode);
 
     tcp::socket _socket;
     std::string _uuid;
     char _data[MAX_LENGTH];
     Server* _server;
 
-    bool _b_close;                                   // 服务器进程是否停止
+    bool _b_close{false}; // 服务器进程是否停止
+    std::atomic<int> outstanding_ops_{0};
     std::queue<std::shared_ptr<SendNode>> _send_que; // 发送队列
     std::mutex _send_lock;
 

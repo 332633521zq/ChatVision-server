@@ -54,7 +54,8 @@ void UserManager::DisconnectUser(std::string uuid)
     _user_broker->UpdateOnlineState(GetUidByUuid(uuid),
                                     false,
                                     std::format("{:%Y-%m-%d %H:%M:%S}", now_seconds));
-    ClearUuid(uuid);
+    if (GetUidByUuid(uuid) != 0)
+        ClearUuid(uuid);
 }
 
 void UserManager::ConnectUser(unsigned int uid, std::string uuid)
@@ -65,12 +66,8 @@ void UserManager::ConnectUser(unsigned int uid, std::string uuid)
 
 void UserManager::AddToConnectsList(unsigned int uid, std::string uuid)
 {
-    if (_connects.find(uid) == _connects.end()) {
-        _connects.insert(std::make_pair(uid, uuid));
-        std::cout << "AddToConnects: \t uid:" << uid << "\t uuid" << uuid << std::endl;
-        return;
-    }
-    // std::cout << "uid not exists\n" << std::endl;
+    _connects[uid] = uuid;
+    std::cout << "AddToConnects: \t uid:" << uid << "\t uuid" << uuid << std::endl;
 }
 
 nlohmann::json UserManager::GetUserInformation(unsigned int uid)
