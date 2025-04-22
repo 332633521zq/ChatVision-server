@@ -597,9 +597,10 @@ void LogicSystem::SearchUserCallBack(std::shared_ptr<Session> session,
 
     unsigned int uid = msg.at("uid");
     unsigned int obj_id = msg.at("object_id");
-
+    std::string type = msg.at("data");
     // 推送用户的基本信息
     nlohmann::json user_info = UserManager::GetInstance()->GetUserInformation(obj_id);
     msg["data"] = user_info;
+    msg["searchtype"] = type;
     session->Send(msg.dump(), MSG_SEARCH);
 }
