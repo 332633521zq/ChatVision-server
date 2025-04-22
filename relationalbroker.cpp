@@ -1,5 +1,6 @@
 #include "relationalbroker.h"
 #include <iostream>
+
 std::unique_ptr<mysqlpp::Connection> RelationalBroker::m_connection = NULL;
 
 RelationalBroker::RelationalBroker()

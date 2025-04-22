@@ -214,7 +214,7 @@ void LogicSystem::LoginCallBack(std::shared_ptr<Session> session,
     msg["data"] = user_info;
     session->Send(msg.dump(), MSG_USER_INFO);
 
-    // 推送用户的粉丝列表，关注列表，黑名单
+    // 推送用户的粉丝列表，关注列表，聊天列表，黑名单
     nlohmann::json following_list = UserManager::GetInstance()->GetFollowingUsersInfo(uid);
     msg["data"] = following_list;
     session->Send(msg.dump(), MSG_GET_FOLLOWINGS);
@@ -284,9 +284,12 @@ void LogicSystem::TextChatCallBack(std::shared_ptr<Session> session,
     bool is_permitted = UserManager::GetInstance()->IsChatPermitted(uid, obj_id);
 
     if (is_permitted) {
+        // 通过消息uid找到对方的session,用于转发消息
         std::string obj_uuid = UserManager::GetInstance()->GetUuidByUid(obj_id);
-        bool forward_state = obj_uuid == "" ? false : true;
+        bool forward_state = obj_uuid == "" ? false : true; // 判断对方是否在线
         std::cout << "forward_state:" << forward_state << std::endl;
+
+        // 对方在线，转发消息
         if (forward_state) {
             auto obj_session = session->_server->FindSessionByUuid(obj_uuid);
             std::cout << "obj_id:" << obj_id << "\tobj_uuid:" << obj_uuid << std::endl;
@@ -299,6 +302,8 @@ void LogicSystem::TextChatCallBack(std::shared_ptr<Session> session,
             // 先将消息存入服务器，等待对方上线
         }
 
+        // 将消息存入本地，且修改聊天权限（聊天消息已被回复，陌生人可以继续发消息，
+        // 否则陌生人发送第一条消息后就会被禁止向该用户继续发送聊天消息）
         FileTools::GetInstance()->SaveTextMsg(uid, obj_id, msg_data, forward_state);
         UserManager::GetInstance()->AnswerFirstChat(uid, obj_id);
         UserManager::GetInstance()->FirstChat(uid, obj_id);
