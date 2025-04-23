@@ -35,13 +35,22 @@ public:
 
 private:
     void PrintRecvData(char* data, int length);
-    void HandleRead(const boost::system::error_code& error,
-                    size_t bytes_transfered,
-                    std::shared_ptr<Session> _self_shared);
+
     void HandleWrite(const boost::system::error_code& error, std::shared_ptr<Session> _self_shared);
-    void StartRead();
 
     void StartWrite(std::shared_ptr<SendNode>& msgnode);
+
+    void StartReadHead();
+
+    void StartReadContent();
+
+    void HandleReadHead(const boost::system::error_code& error,
+                        size_t bytes_transfered,
+                        std::shared_ptr<Session> _self_shared);
+
+    void HandleReadContent(const boost::system::error_code& error,
+                           size_t bytes_transfered,
+                           std::shared_ptr<Session> _self_shared);
 
     tcp::socket _socket;
     std::string _uuid;
